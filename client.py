@@ -1,6 +1,6 @@
 import socket
 import threading
-
+from rsa import generate_keys
 class Client:
     def __init__(self, server_ip: str, port: int, username: str) -> None:
         self.server_ip = server_ip
@@ -17,15 +17,19 @@ class Client:
 
         self.s.send(self.username.encode())
 
-        # create key pairs
+        server_pub_key_raw = self.s.recv(1024).decode()
+        e, n = map(int, server_pub_key_raw.split(','))
+        self.server_pub_key = (e, n)
 
-        # exchange public keys
+        self.public_key, self.private_key = generate_keys()
 
-        # receive the encrypted secret key
+        self.s.send(f"{self.public_key[0]},{self.public_key[1]}".encode())
 
-        message_handler = threading.Thread(target=self.read_handler,args=())
+        self.secret_key = None # add a secret key 
+
+        message_handler = threading.Thread(target=self.read_handler)
         message_handler.start()
-        input_handler = threading.Thread(target=self.write_handler,args=())
+        input_handler = threading.Thread(target=self.write_handler)
         input_handler.start()
 
     def read_handler(self): 
