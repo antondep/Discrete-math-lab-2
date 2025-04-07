@@ -25,14 +25,14 @@ class Client:
 
         self.s.send(f"{self.public_key[0]},{self.public_key[1]}".encode())
 
-        self.secret_key = None # add a secret key 
+        self.secret_key = None # add a secret key
 
         message_handler = threading.Thread(target=self.read_handler)
         message_handler.start()
         input_handler = threading.Thread(target=self.write_handler)
         input_handler.start()
 
-    def read_handler(self): 
+    def read_handler(self):
         while True:
             message = self.s.recv(1024).decode()
 
