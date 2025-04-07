@@ -1,5 +1,6 @@
 import socket
 import threading
+from rsa import generate_keys
 
 class Server:
 
@@ -8,43 +9,39 @@ class Server:
         self.port = port
         self.clients = []
         self.username_lookup = {}
-        self.s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        self.client_public_keys = {} 
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        self.public_key, self.private_key = generate_keys()
 
     def start(self):
         self.s.bind((self.host, self.port))
         self.s.listen(100)
 
-        # generate keys ...
+        print(f"[server]: Сервер запущено на {self.host}:{self.port}")
 
         while True:
             c, addr = self.s.accept()
             username = c.recv(1024).decode()
             print(f"{username} tries to connect")
-            self.broadcast(f'new person has joined: {username}')
+            self.broadcast(f'{username} has joined the chat!')
             self.username_lookup[c] = username
             self.clients.append(c)
 
-            # send public key to the client 
+            c.send(f"{self.public_key[0]},{self.public_key[1]}".encode())
 
-            # ...
+            client_pub_key = c.recv(1024).decode()
+            e, n = map(int, client_pub_key.split(','))
+            self.username_lookup[c] = {
+                "username": username,
+                "public_key": (e, n)
+            }
 
-            # encrypt the secret with the clients public key
-
-            # ...
-
-            # send the encrypted secret to a client 
-
-            # ...
-
-            threading.Thread(target=self.handle_client,args=(c,addr,)).start()
+            threading.Thread(target=self.handle_client, args=(c, addr)).start()
 
     def broadcast(self, msg: str):
-        for client in self.clients: 
-
-            # encrypt the message
-
-            # ...
-
+        for client in self.clients:
+            # тут шифрування і хешування
             client.send(msg.encode())
 
     def handle_client(self, c: socket, addr): 
