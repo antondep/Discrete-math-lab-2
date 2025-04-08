@@ -18,14 +18,19 @@ class Client:
         self.s.send(self.username.encode())
 
         server_pub_key_raw = self.s.recv(1024).decode()
-        e, n = map(int, server_pub_key_raw.split(','))
-        self.server_pub_key = (e, n)
+        parts = server_pub_key_raw.split(',')
+        server_e = int(parts[0])
+        server_n = int(parts[1])
+        self.server_pub_key = (server_e, server_n)
 
         self.public_key, self.private_key = generate_keys()
 
-        self.s.send(f"{self.public_key[0]},{self.public_key[1]}".encode())
+        my_e = self.public_key[0]
+        my_n = self.public_key[1]
+        my_pub_key_str = f"{my_e},{my_n}"
+        self.s.send(my_pub_key_str.encode())
 
-        self.secret_key = None # add a secret key
+        self.secret_key = None # add secret key
 
         message_handler = threading.Thread(target=self.read_handler)
         message_handler.start()

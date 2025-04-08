@@ -1,10 +1,5 @@
 import random
-
-def gcd(a, b):
-    while b:
-        a, b = b, a % b
-    return a
-
+import math
 def modinv(a, m):
     m0, x0, x1 = m, 0, 1
     while a > 1:
@@ -30,7 +25,7 @@ def generate_keys():
     n = p * q
     phi = (p-1)*(q-1)
     e = 65537 
-    while gcd(e, phi) != 1:
+    while math.gcd(e, phi) != 1:
         e = random.randint(3, phi - 1)
     d = modinv(e, phi)
     return ((e, n), (d, n))
