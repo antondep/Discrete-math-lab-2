@@ -29,3 +29,15 @@ def generate_keys():
         e = random.randint(3, phi - 1)
     d = modinv(e, phi)
     return ((e, n), (d, n))
+
+
+
+
+def encrypt_message(message: str, enc_key: tuple):
+    codes = [ord(el) for el in message]
+    encoded_symbols = [(el ** enc_key[0]) % enc_key[1] for el in codes]
+
+    return encoded_symbols
+
+def decrypt_message(cypher, private_key):
+    return "".join([chr((el ** private_key[0]) % private_key[1]) for el in cypher])
