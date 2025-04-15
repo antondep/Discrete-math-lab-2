@@ -1,6 +1,8 @@
+"""server"""
+
 import socket
 import threading
-from rsa import generate_keys
+from rsa import generate_keys, encrypt_message, decrypt_message
 
 class Server:
 
@@ -35,21 +37,25 @@ class Server:
             e = int(parts[0])
             n = int(parts[1])
 
+            private_key_str = f"{self.private_key[0]},{self.private_key[1]}"
+            c.send(encrypt_message(private_key_str, (e, n)).encode())
+
             self.username_lookup[c] = {"username": username,"public_key": (e, n)}
             threading.Thread(target=self.handle_client, args=(c, addr)).start()
 
     def broadcast(self, msg: str):
         for client in self.clients:
-            # тут шифрування і хешування
-            client.send(msg.encode())
+            encrypted_msg = encrypt_message(msg, self.public_key)
+            client.send(encrypted_msg.encode())
 
-    def handle_client(self, c: socket, addr): 
+
+    def handle_client(self, c: socket, addr):
         while True:
-            msg = c.recv(1024)
+            msg = c.recv(1024).decode()
 
             for client in self.clients:
                 if client != c:
-                    client.send(msg)
+                    client.send(msg.encode())
 
 if __name__ == "__main__":
     s = Server(9001)

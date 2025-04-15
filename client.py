@@ -1,6 +1,7 @@
+"""client"""
 import socket
 import threading
-from rsa import generate_keys
+from rsa import generate_keys, encrypt_message, decrypt_message
 class Client:
     def __init__(self, server_ip: str, port: int, username: str) -> None:
         self.server_ip = server_ip
@@ -30,7 +31,10 @@ class Client:
         my_pub_key_str = f"{my_e},{my_n}"
         self.s.send(my_pub_key_str.encode())
 
-        self.secret_key = None # add secret key
+        sent_private = decrypt_message(self.s.recv(1024).decode(), self.private_key).split(",")
+        print(sent_private)
+        print("-"*100)
+        self.secret_key = tuple(sent_private)
 
         message_handler = threading.Thread(target=self.read_handler)
         message_handler.start()
@@ -41,22 +45,14 @@ class Client:
         while True:
             message = self.s.recv(1024).decode()
 
-            # decrypt message with the secrete key
+            enc_message = decrypt_message(message, self.secret_key)
 
-            # ... 
-
-
-            print(message)
+            print(enc_message)
 
     def write_handler(self):
         while True:
             message = input()
-
-            # encrypt message with the secrete key
-
-            # ...
-
-            self.s.send(message.encode())
+            self.s.send(encrypt_message(message, self.server_pub_key).encode())
 
 if __name__ == "__main__":
     cl = Client("127.0.0.1", 9001, "b_g")

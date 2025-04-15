@@ -41,11 +41,13 @@ def generate_keys():
 
 
 def encrypt_message(message: str, enc_key: tuple):
+    enc_key = (int(enc_key[0]), int(enc_key[1]))
     codes = [ord(el) for el in message]
-    encoded_symbols = [(el ** enc_key[0]) % enc_key[1] for el in codes]
+    encoded_symbols = " ".join([str((el ** enc_key[0]) % enc_key[1]) for el in codes])
 
     return encoded_symbols
 
-
 def decrypt_message(cypher, private_key):
-    return "".join([chr((el ** private_key[0]) % private_key[1]) for el in cypher])
+    private_key = (int(private_key[0]), int(private_key[1]))
+
+    return "".join([chr((int(el) ** private_key[0]) % private_key[1]) for el in cypher.split()])
