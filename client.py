@@ -2,6 +2,8 @@
 import socket
 import threading
 from rsa import generate_keys, encrypt_message, decrypt_message
+import hashlib
+
 class Client:
     def __init__(self, server_ip: str, port: int, username: str) -> None:
         self.server_ip = server_ip
@@ -46,13 +48,19 @@ class Client:
             message = self.s.recv(1024).decode()
 
             enc_message = decrypt_message(message, self.secret_key)
+            msg_hash, msg = enc_message.split(":,", maxsplit=1)
+            print(msg, end="")
+            if msg_hash == hashlib.sha256(msg.encode()).hexdigest():
+                print(" "*10 + "✓")
+            else:
+                print(r"\nMessage integrity is bad!") 
 
-            print(enc_message)
 
     def write_handler(self):
         while True:
             message = input()
-            self.s.send(encrypt_message(message, self.server_pub_key).encode())
+            msg_hash = hashlib.sha256(message.encode()).hexdigest()
+            self.s.send(encrypt_message(f"{msg_hash}:,{message}", self.server_pub_key).encode())
 
 if __name__ == "__main__":
     cl = Client("127.0.0.1", 9001, "b_g")

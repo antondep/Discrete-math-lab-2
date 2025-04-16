@@ -2,7 +2,8 @@
 
 import socket
 import threading
-from rsa import generate_keys, encrypt_message, decrypt_message
+from rsa import generate_keys, encrypt_message
+import hashlib
 
 class Server:
 
@@ -45,7 +46,8 @@ class Server:
 
     def broadcast(self, msg: str):
         for client in self.clients:
-            encrypted_msg = encrypt_message(msg, self.public_key)
+            msg_hash = hashlib.sha256(msg.encode()).hexdigest()
+            encrypted_msg = encrypt_message(f"{msg_hash}:,{msg}", self.public_key)
             client.send(encrypted_msg.encode())
 
 
